@@ -52,7 +52,7 @@ button {
 }
 
 .orp-left {
-  min-width: 7ch;
+  min-width: 4ch;
   text-align: right;
 }
 
@@ -61,6 +61,6 @@ button {
 }
 
 .orp-right {
-  min-width: 7ch;
+  min-width: 10ch;
   text-align: left;
 }
