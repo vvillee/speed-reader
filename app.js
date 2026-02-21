@@ -24,6 +24,7 @@ function getDelay() {
 }
 
 const ORP_RATIO = 0.35;
+const LETTER_RE = /[a-zA-Z]/;
 
 // Escape HTML special characters to prevent XSS when using innerHTML
 function escapeHtml(str) {
@@ -36,18 +37,21 @@ function escapeHtml(str) {
 
 // Return the index (into the word's letters only) to highlight (ORP)
 function getOrpIndex(word) {
-  const letters = word.replace(/[^a-zA-Z]/g, "");
-  if (letters.length <= 2) return 0;
-  return Math.floor(letters.length * ORP_RATIO);
+  let letterCount = 0;
+  for (const ch of word) {
+    if (LETTER_RE.test(ch)) letterCount++;
+  }
+  if (letterCount <= 2) return 0;
+  return Math.floor(letterCount * ORP_RATIO);
 }
 
-// Return an HTML string that wraps the ORP letter in a .orp span
+// Return an HTML string with three spans for a stable ORP fixation point
 function renderWord(word) {
   const orpIndex = getOrpIndex(word);
   let letterCount = 0;
   let highlightPos = -1;
   for (let i = 0; i < word.length; i++) {
-    if (/[a-zA-Z]/.test(word[i])) {
+    if (LETTER_RE.test(word[i])) {
       if (letterCount === orpIndex) {
         highlightPos = i;
         break;
@@ -59,7 +63,9 @@ function renderWord(word) {
   const left = escapeHtml(word.slice(0, highlightPos));
   const highlighted = escapeHtml(word[highlightPos]);
   const right = escapeHtml(word.slice(highlightPos + 1));
-  return left + '<span class="orp">' + highlighted + "</span>" + right;
+  return `<span class="orp-left">${left}</span>` +
+         `<span class="orp">${highlighted}</span>` +
+         `<span class="orp-right">${right}</span>`;
 }
 
 function showNextWord() {

@@ -51,7 +51,16 @@ button {
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
+.orp-left {
+  min-width: 7ch;
+  text-align: right;
+}
+
 .orp {
   color: #e74c3c;
+}
+
+.orp-right {
+  min-width: 10ch;
 }
 
