@@ -23,10 +23,49 @@ function getDelay() {
   return 60000 / wpm;
 }
 
+const ORP_RATIO = 0.35;
+
+// Escape HTML special characters to prevent XSS when using innerHTML
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// Return the index (into the word's letters only) to highlight (ORP)
+function getOrpIndex(word) {
+  const letters = word.replace(/[^a-zA-Z]/g, "");
+  if (letters.length <= 2) return 0;
+  return Math.floor(letters.length * ORP_RATIO);
+}
+
+// Return an HTML string that wraps the ORP letter in a .orp span
+function renderWord(word) {
+  const orpIndex = getOrpIndex(word);
+  let letterCount = 0;
+  let highlightPos = -1;
+  for (let i = 0; i < word.length; i++) {
+    if (/[a-zA-Z]/.test(word[i])) {
+      if (letterCount === orpIndex) {
+        highlightPos = i;
+        break;
+      }
+      letterCount++;
+    }
+  }
+  if (highlightPos === -1) return escapeHtml(word);
+  const left = escapeHtml(word.slice(0, highlightPos));
+  const highlighted = escapeHtml(word[highlightPos]);
+  const right = escapeHtml(word.slice(highlightPos + 1));
+  return left + '<span class="orp">' + highlighted + "</span>" + right;
+}
+
 function showNextWord() {
   if (!isPlaying || index >= words.length) return;
 
-  reader.textContent = words[index];
+  reader.innerHTML = renderWord(words[index]);
   index++;
 
   timeoutId = setTimeout(showNextWord, getDelay());
