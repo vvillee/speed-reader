@@ -32,7 +32,8 @@ function escapeHtml(str) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 }
 
 // Return the index (into the word's letters only) to highlight (ORP)
@@ -59,7 +60,12 @@ function renderWord(word) {
       letterCount++;
     }
   }
-  if (highlightPos === -1) return escapeHtml(word);
+  if (highlightPos === -1) {
+    const escaped = escapeHtml(word);
+    return `<span class="orp-left">${escaped}</span>` +
+           `<span class="orp">&nbsp;</span>` +
+           `<span class="orp-right"></span>`;
+  }
   const left = escapeHtml(word.slice(0, highlightPos));
   const highlighted = escapeHtml(word[highlightPos]);
   const right = escapeHtml(word.slice(highlightPos + 1));
@@ -106,6 +112,6 @@ resetBtn.addEventListener("click", () => {
   clearTimeout(timeoutId);
   index = 0;
   words = [];
-  reader.textContent = "Ready";
+  reader.innerHTML = `<span class="orp-left"></span><span class="orp">&nbsp;</span><span class="orp-right">Ready</span>`;
 });
 
