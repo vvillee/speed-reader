@@ -6,6 +6,9 @@ const resetBtn = document.getElementById("resetBtn");
 const wpmSlider = document.getElementById("wpmSlider");
 const wpmLabel = document.getElementById("wpmLabel");
 
+// Initialize reader with three-span ORP structure for layout consistency
+reader.innerHTML = `<span class="orp-left"></span><span class="orp">&nbsp;</span><span class="orp-right">Ready</span>`;
+
 let words = [];
 let index = 0;
 let timeoutId = null;
