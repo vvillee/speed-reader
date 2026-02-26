@@ -81,8 +81,24 @@ function renderWord(word) {
          `<span class="orp-right">${right}</span>`;
 }
 
+// Ensure words array is populated from the textarea; returns false if no text is available.
+function ensureWords() {
+  if (words.length > 0) return true;
+  const text = textInput.value.trim();
+  if (!text) {
+    alert("Please paste some text first.");
+    return false;
+  }
+  words = text.split(/\s+/);
+  return true;
+}
+
 function showNextWord() {
-  if (!isPlaying || index >= words.length) return;
+  if (!isPlaying || index >= words.length) {
+    // Mark playback as stopped when the end of the word list is reached
+    isPlaying = false;
+    return;
+  }
 
   reader.innerHTML = renderWord(words[index]);
   index++;
@@ -93,15 +109,10 @@ function showNextWord() {
 // Start reading
 startBtn.addEventListener("click", () => {
   if (isPlaying) return;
+  if (!ensureWords()) return;
 
-  if (words.length === 0) {
-    const text = textInput.value.trim();
-    if (!text) {
-      alert("Please paste some text first.");
-      return;
-    }
-    words = text.split(/\s+/);
-  }
+  // If we've reached the end, restart from the beginning
+  if (index >= words.length) index = 0;
 
   isPlaying = true;
   showNextWord();
@@ -122,22 +133,14 @@ resetBtn.addEventListener("click", () => {
   reader.innerHTML = `<span class="orp-left"></span><span class="orp">&nbsp;</span><span class="orp-right">Ready</span>`;
 });
 
+// Sync debug controls visibility on load in case the checkbox is pre-checked
+// (e.g. via browser form-state restore)
+debugControls.classList.toggle("visible", debugToggle.checked);
+
 // Toggle debug mode: show/hide the debug step controls
 debugToggle.addEventListener("change", () => {
   debugControls.classList.toggle("visible", debugToggle.checked);
 });
-
-// Ensure words array is populated from the textarea; returns false if no text is available.
-function ensureWords() {
-  if (words.length > 0) return true;
-  const text = textInput.value.trim();
-  if (!text) {
-    alert("Please paste some text first.");
-    return false;
-  }
-  words = text.split(/\s+/);
-  return true;
-}
 
 // Debug: display the word at the given index without advancing the reader loop
 function showWordAt(i) {
@@ -150,9 +153,14 @@ nextWordBtn.addEventListener("click", () => {
   isPlaying = false;
   clearTimeout(timeoutId);
   if (!ensureWords()) return;
-  if (index >= words.length) return;
+  // Cap at the last word so Start can resume from here without needing a reset
+  if (index >= words.length) {
+    index = words.length - 1;
+  }
   showWordAt(index);
-  index++;
+  if (index < words.length - 1) {
+    index++;
+  }
 });
 
 // Debug: step backward one word (pauses playback if running)
