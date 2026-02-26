@@ -5,6 +5,10 @@ const pauseBtn = document.getElementById("pauseBtn");
 const resetBtn = document.getElementById("resetBtn");
 const wpmSlider = document.getElementById("wpmSlider");
 const wpmLabel = document.getElementById("wpmLabel");
+const debugToggle = document.getElementById("debugToggle");
+const debugControls = document.getElementById("debugControls");
+const prevWordBtn = document.getElementById("prevWordBtn");
+const nextWordBtn = document.getElementById("nextWordBtn");
 
 // Initialize reader with three-span ORP structure for layout consistency
 reader.innerHTML = `<span class="orp-left"></span><span class="orp">&nbsp;</span><span class="orp-right">Ready</span>`;
@@ -77,8 +81,24 @@ function renderWord(word) {
          `<span class="orp-right">${right}</span>`;
 }
 
+// Ensure words array is populated from the textarea; returns false if no text is available.
+function ensureWords() {
+  if (words.length > 0) return true;
+  const text = textInput.value.trim();
+  if (!text) {
+    alert("Please paste some text first.");
+    return false;
+  }
+  words = text.split(/\s+/);
+  return true;
+}
+
 function showNextWord() {
-  if (!isPlaying || index >= words.length) return;
+  if (!isPlaying || index >= words.length) {
+    // Mark playback as stopped when the end of the word list is reached
+    isPlaying = false;
+    return;
+  }
 
   reader.innerHTML = renderWord(words[index]);
   index++;
@@ -89,15 +109,10 @@ function showNextWord() {
 // Start reading
 startBtn.addEventListener("click", () => {
   if (isPlaying) return;
+  if (!ensureWords()) return;
 
-  if (words.length === 0) {
-    const text = textInput.value.trim();
-    if (!text) {
-      alert("Please paste some text first.");
-      return;
-    }
-    words = text.split(/\s+/);
-  }
+  // If we've reached the end, restart from the beginning
+  if (index >= words.length) index = 0;
 
   isPlaying = true;
   showNextWord();
@@ -116,5 +131,47 @@ resetBtn.addEventListener("click", () => {
   index = 0;
   words = [];
   reader.innerHTML = `<span class="orp-left"></span><span class="orp">&nbsp;</span><span class="orp-right">Ready</span>`;
+});
+
+// Sync debug controls visibility on load in case the checkbox is pre-checked
+// (e.g. via browser form-state restore)
+debugControls.classList.toggle("visible", debugToggle.checked);
+
+// Toggle debug mode: show/hide the debug step controls
+debugToggle.addEventListener("change", () => {
+  debugControls.classList.toggle("visible", debugToggle.checked);
+});
+
+// Debug: display the word at the given index without advancing the reader loop
+function showWordAt(i) {
+  if (i < 0 || i >= words.length) return;
+  reader.innerHTML = renderWord(words[i]);
+}
+
+// Debug: step forward one word (pauses playback if running)
+nextWordBtn.addEventListener("click", () => {
+  isPlaying = false;
+  clearTimeout(timeoutId);
+  if (!ensureWords()) return;
+  // Cap at the last word so Start can resume from here without needing a reset
+  if (index >= words.length) {
+    index = words.length - 1;
+  }
+  showWordAt(index);
+  if (index < words.length - 1) {
+    index++;
+  }
+});
+
+// Debug: step backward one word (pauses playback if running)
+prevWordBtn.addEventListener("click", () => {
+  isPlaying = false;
+  clearTimeout(timeoutId);
+  if (!ensureWords()) return;
+  // index points to the next word to display; the currently shown word is at index-1.
+  // Move back two positions so that showWordAt+index++ lands on the word before the current one.
+  index = Math.max(0, index - 2);
+  showWordAt(index);
+  index++;
 });
 
