@@ -5,6 +5,10 @@ const pauseBtn = document.getElementById("pauseBtn");
 const resetBtn = document.getElementById("resetBtn");
 const wpmSlider = document.getElementById("wpmSlider");
 const wpmLabel = document.getElementById("wpmLabel");
+const debugToggle = document.getElementById("debugToggle");
+const debugControls = document.getElementById("debugControls");
+const prevWordBtn = document.getElementById("prevWordBtn");
+const nextWordBtn = document.getElementById("nextWordBtn");
 
 // Initialize reader with three-span ORP structure for layout consistency
 reader.innerHTML = `<span class="orp-left"></span><span class="orp">&nbsp;</span><span class="orp-right">Ready</span>`;
@@ -116,5 +120,50 @@ resetBtn.addEventListener("click", () => {
   index = 0;
   words = [];
   reader.innerHTML = `<span class="orp-left"></span><span class="orp">&nbsp;</span><span class="orp-right">Ready</span>`;
+});
+
+// Toggle debug mode: show/hide the debug step controls
+debugToggle.addEventListener("change", () => {
+  debugControls.classList.toggle("visible", debugToggle.checked);
+});
+
+// Ensure words array is populated from the textarea; returns false if no text is available.
+function ensureWords() {
+  if (words.length > 0) return true;
+  const text = textInput.value.trim();
+  if (!text) {
+    alert("Please paste some text first.");
+    return false;
+  }
+  words = text.split(/\s+/);
+  return true;
+}
+
+// Debug: display the word at the given index without advancing the reader loop
+function showWordAt(i) {
+  if (i < 0 || i >= words.length) return;
+  reader.innerHTML = renderWord(words[i]);
+}
+
+// Debug: step forward one word (pauses playback if running)
+nextWordBtn.addEventListener("click", () => {
+  isPlaying = false;
+  clearTimeout(timeoutId);
+  if (!ensureWords()) return;
+  if (index >= words.length) return;
+  showWordAt(index);
+  index++;
+});
+
+// Debug: step backward one word (pauses playback if running)
+prevWordBtn.addEventListener("click", () => {
+  isPlaying = false;
+  clearTimeout(timeoutId);
+  if (!ensureWords()) return;
+  // index points to the next word to display; the currently shown word is at index-1.
+  // Move back two positions so that showWordAt+index++ lands on the word before the current one.
+  index = Math.max(0, index - 2);
+  showWordAt(index);
+  index++;
 });
 

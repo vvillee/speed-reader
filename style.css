@@ -67,3 +67,25 @@ button {
   overflow: hidden;
   text-align: left;
 }
+
+/* Debug mode toggle label */
+.debug-toggle {
+  font-size: 14px;
+  color: #666;
+}
+
+/* Debug step controls: hidden by default, shown when .visible is added */
+.debug-controls {
+  display: none;
+  gap: 10px;
+}
+
+.debug-controls.visible {
+  display: flex;
+}
+
+.debug-controls button {
+  background: #f0f0f0;
+  border: 1px solid #bbb;
+  color: #444;
+}
